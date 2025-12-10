@@ -1,65 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/detail_page.dart';
-import 'bookmark_manager.dart';
+import '../services/bookmark_service.dart';
+import '../utils/session_manager.dart';
+import '../models/comic.dart';
+import '../widgets/comic_tile.dart';
 
 class BookmarkPage extends StatefulWidget {
-  const BookmarkPage({super.key});
-
   @override
   State<BookmarkPage> createState() => _BookmarkPageState();
 }
 
 class _BookmarkPageState extends State<BookmarkPage> {
+  List<Comic> _list = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  void _fetch() async {
+    final uid = SessionManager.userId;
+    if (uid == null) {
+      setState(() => _loading =false);
+      return;
+    }
+    final res = await BookmarkService.list(uid);
+    setState(() => _list = res);
+    setState(() => _loading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          "Bookmark",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.blue,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Bookmark'),
       ),
-      body: bookmarkedComics.isEmpty
-          ? const Center(
-              child: Text(
-                "Tidak ada komik yang dibookmark",
-                style: TextStyle(fontSize: 15),
-              ),
-            )
-          : ListView.builder(
-              itemCount: bookmarkedComics.length,
-              itemBuilder: (context, index) {
-                final comic = bookmarkedComics[index];
-                return Card(
-                  margin: 
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: ListTile(
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        comic["image"],
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    title: Text(comic["title"]),
-                    subtitle: Text(comic["chapter"]),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => DetailPage(comic: comic)),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+      body: _loading ? const Center(child: CircularProgressIndicator()) : _list.isEmpty ? const Center(child: Text('No bookmark')) :
+      ListView(children: _list.map((c) => ComicTile(comic: c, onTap: () => {})).toList()),
     );
   }
 }

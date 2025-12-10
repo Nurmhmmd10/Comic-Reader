@@ -1,105 +1,42 @@
 import 'package:flutter/material.dart';
+import '../models/comic.dart';
 
 class ReaderPage extends StatefulWidget {
-  final Map<String, dynamic> comic;
-  final int currentChapter;
-
-  const ReaderPage({super.key, required this.currentChapter, required this.comic});
+  final Comic comic;
+  final int initialChapter;
+  const ReaderPage({required this.comic, required this.initialChapter});
 
   @override
   State<ReaderPage> createState() => _ReaderPageState();
 }
 
 class _ReaderPageState extends State<ReaderPage> {
-  late int chapterNow;
-
+  late int _current;
   @override
   void initState() {
     super.initState();
-    chapterNow = widget.currentChapter;
+    _current = widget.initialChapter;
   }
 
-  void nextChapter() {
-    if (chapterNow < widget.comic["totalChapters"]) {
-      setState(() => chapterNow++);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ini chapter terakhir!")),
-      );
-    }
+  void _next() {
+    if (_current > 1) setState(() => _current--);
   }
-
-  void prevChapter() {
-    if (chapterNow > 1) {
-      setState(() => chapterNow--);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ini chapter pertama!")),
-      );
-    }
+  void _prev() {
+    if (_current < widget.comic.totalChapters) setState(() => _current++);
   }
 
   @override
   Widget build(BuildContext context) {
-    final comic = widget.comic;
-
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.blue,
-        title: Text(
-          "${comic["title"]} - Chapter $chapterNow",
-          style: TextStyle(color: Colors.white, fontSize: 15),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  "Isi komik untuk Chapter $chapterNow akan tampil di sini.",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 15, color: Colors.black87),
-                ),
-              ),
-            ),
-          ),
-          Container(
-            color: Colors.blue[50],
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onPressed: prevChapter,
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text("Sebelumnya"),
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onPressed: nextChapter,
-                  icon: const Icon(Icons.arrow_forward), 
-                  label: const Text("Berikutnya"),
-                ),
-              ],
-            ),
-          ),
+        title: Text('${widget.comic.title} - Chapter $_current'),
+        actions: [
+          IconButton(onPressed: _prev, icon: const Icon(Icons.arrow_back_ios)),
+          IconButton(onPressed: _next, icon: const Icon(Icons.arrow_forward_ios)),
         ],
+      ),
+      body: Center(
+        child: Text('Reader mockup\nComic: ${widget.comic.title}\nChapter: $_current', textAlign: TextAlign.center),
       ),
     );
   }
